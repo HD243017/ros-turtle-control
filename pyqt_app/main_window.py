@@ -1,7 +1,9 @@
 import sys
+import subprocess
 import threading
 import rclpy as rp
 import mysql.connector
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, 
     QVBoxLayout, QGridLayout, QLabel, QMessageBox
@@ -60,6 +62,11 @@ class TurtleApp(QWidget):
         self.status_label = QLabel('Ready')
         main_layout.addWidget(self.status_label)
 
+        # Exit btn
+        btn_shutdown = QPushButton('Exit')
+        btn_shutdown.clicked.connect(self.safe_shutdown)
+        main_layout.addWidget(btn_shutdown)
+
         self.setLayout(main_layout)
 
     def save_pose_to_db(self):
@@ -81,6 +88,23 @@ class TurtleApp(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "DB ERROR", f"failed save: {str(e)}")
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_W:
+            self.node.move_turtle(2.0, 0.0)
+        elif key == Qt.Key_S:
+            self.node.move_turtle(-2.0, 0.0)
+        elif key == Qt.Key_A:
+            self.node.move_turtle(0.0, 2.0)
+        elif key == Qt.Key_D:
+            self.node.move_turtle(0.0, -2.0)
+        else:
+            super().keyPressEvent(event)
+
+    def safe_shutdown(self):
+        self.node.move_turtle(0.0, 0.0)
+        self.close()
+
 def main():
     rp.init()
     node = TurtleController()
@@ -96,7 +120,8 @@ def main():
     exit_code = app.exec_()
 
     node.destroy_node()
-    rp.shutdown()
+    if rp.ok():
+        rp.shutdown()
     sys.exit(exit_code)
 
 if __name__ == '__main__':

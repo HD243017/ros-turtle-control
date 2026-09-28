@@ -43,9 +43,12 @@
 ---
 
 ## 4. 조작 안내
-- 방향키 버튼 (▲, ▼, ◀, ▶): 이동 제어
-- Reset Turtle: 초기화
-- Save Pose to DB: 현재 좌표(x, y, theta)를 DB에 기록
+- GUI 버튼:
+    - 방향키 버튼 (▲, ▼, ◀, ▶): 이동 제어
+    - Reset Turtle: 초기화
+    - Save Pose to DB: 현재 좌표(x, y, theta)를 DB에 기록
+- 키보드 조작 (GUI 창 포커스 시):
+    - W: 전진 / S: 후진 / A: 좌회전 / D: 우회전
 
 ---
 

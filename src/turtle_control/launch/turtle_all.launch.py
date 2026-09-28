@@ -1,7 +1,8 @@
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, RegisterEventHandler, Shutdown
+from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
 	turtlesim_node = Node(
@@ -22,8 +23,16 @@ def generate_launch_description():
 		output='screen'
 	)
 
+	shutdown_handler = RegisterEventHandler(
+		OnProcessExit(
+			target_action=pyqt_process,
+			on_exit=[Shutdown()]
+		)
+	)
+
 	return LaunchDescription([
 		turtlesim_node,
 		controller_node,
-		pyqt_process
+		pyqt_process,
+		shutdown_handler
 	])
