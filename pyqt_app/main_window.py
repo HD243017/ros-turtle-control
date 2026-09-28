@@ -6,7 +6,7 @@ import mysql.connector
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, 
-    QVBoxLayout, QGridLayout, QLabel, QMessageBox
+    QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QMessageBox  # <- QHBoxLayout 추가
 )
 
 from turtle_control.turtle_controller import TurtleController
@@ -54,12 +54,21 @@ class TurtleApp(QWidget):
         main_layout.addWidget(btn_reset)
 
         # db save btn
+        h_layout = QHBoxLayout()
+
         btn_save = QPushButton('Save Pose to DB')
         btn_save.clicked.connect(self.save_pose_to_db)
-        main_layout.addWidget(btn_save)
+        h_layout.addWidget(btn_save)
+
+        btn_load = QPushButton('Load DB')
+        btn_load.clicked.connect(self.load_recent_db)
+        h_layout.addWidget(btn_load)
+
+        main_layout.addLayout(h_layout)
 
         # status label
         self.status_label = QLabel('Ready')
+        self.status_label.setStyleSheet("font-family: monospace; font-size: 11px;")
         main_layout.addWidget(self.status_label)
 
         # Exit btn
@@ -87,6 +96,31 @@ class TurtleApp(QWidget):
             self.status_label.setText(f"saved: ({pose.x:.2f}, {pose.y:.2f}, {pose.theta:.2f})")
         except Exception as e:
             QMessageBox.critical(self, "DB ERROR", f"failed save: {str(e)}")
+
+    def load_recent_db(self):
+        try:
+            conn = mysql.connector.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            
+            query = "SELECT id, x, y, theta, time FROM turtlepos ORDER BY id DESC LIMIT 5"
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            cursor.close()
+            conn.close()
+
+            if not rows:
+                self.status_label.setText("No data in DB.")
+                return
+
+            lines = ["id | x | y | theta | time"]
+            for r in rows:
+                t_str = str(r[4])
+                lines.append(f"{r[0]} | {r[1]:.2f} | {r[2]:.2f} | {r[3]:.2f} | {t_str}")
+
+            self.status_label.setText("\n".join(lines))
+
+        except Exception as e:
+            QMessageBox.critical(self, 'DB Error', f"failed : {str(e)}")
 
     def keyPressEvent(self, event):
         key = event.key()
